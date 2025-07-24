@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import Iterable, List
 
 # from docling.backend.docling_parse_backend import DoclingParseDocumentBackend
-from docling.backend.docling_parse_v2_backend import DoclingParseV2DocumentBackend
+# from docling.backend.docling_parse_v2_backend import DoclingParseV2DocumentBackend
+from docling.backend.docling_parse_v4_backend import DoclingParseV4DocumentBackend
 # from docling.backend.pypdfium2_backend import PyPdfiumDocumentBackend
 from docling.datamodel.base_models import ConversionStatus
 from docling.datamodel.document import ConversionResult
@@ -32,7 +33,7 @@ def _process_chunk(pdf_paths, pdf_backend, output_dir, num_threads, metadata_loo
 class PDFParser:
     def __init__(
         self,
-        pdf_backend=DoclingParseV2DocumentBackend,
+        pdf_backend=DoclingParseV4DocumentBackend,
         output_dir: Path = Path("./parsed_pdfs"),
         num_threads: int = None,
         csv_metadata_path: Path = None,

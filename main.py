@@ -1,6 +1,7 @@
 import click
 from pathlib import Path
 from src.pipeline import Pipeline, configs, preprocess_configs
+from src.pdf_to_markdown import PDFToMarkdownConverter
 
 @click.group()
 def cli():
@@ -56,6 +57,53 @@ def process_questions(config):
     
     click.echo(f"Processing questions (config={config})...")
     pipeline.process_questions()
+
+@cli.command()
+@click.argument('pdf_path', type=click.Path(exists=True))
+@click.option('-o', '--output', help='Output markdown file path')
+@click.option('-d', '--output-dir', help='Output directory for markdown files')
+def pdf_to_markdown(pdf_path, output, output_dir):
+    """Convert a PDF file to markdown format."""
+    try:
+        # Create converter instance
+        converter = PDFToMarkdownConverter(output_dir=output_dir or "./output")
+        
+        # Convert PDF
+        output_path = converter.convert_single_pdf(pdf_path, output)
+        
+        click.echo(f"Successfully converted '{pdf_path}' to '{output_path}'")
+        
+    except Exception as e:
+        click.echo(f"Error converting PDF: {str(e)}", err=True)
+
+@cli.command()
+@click.argument('pdf_dir', type=click.Path(exists=True))
+@click.option('-d', '--output-dir', help='Output directory for markdown files', default="./output")
+def batch_pdf_to_markdown(pdf_dir, output_dir):
+    """Convert all PDF files in a directory to markdown format."""
+    try:
+        from pathlib import Path
+        
+        # Get all PDF files in the directory
+        pdf_dir_path = Path(pdf_dir)
+        pdf_files = list(pdf_dir_path.glob("*.pdf"))
+        
+        if not pdf_files:
+            click.echo("No PDF files found in the specified directory.")
+            return
+        
+        # Create converter instance
+        converter = PDFToMarkdownConverter(output_dir=output_dir)
+        
+        # Convert PDFs
+        output_paths = converter.convert_multiple_pdfs([str(pdf) for pdf in pdf_files])
+        
+        click.echo(f"Successfully converted {len(output_paths)} PDFs:")
+        for path in output_paths:
+            click.echo(f"  - {path}")
+        
+    except Exception as e:
+        click.echo(f"Error converting PDFs: {str(e)}", err=True)
 
 if __name__ == '__main__':
     cli()
