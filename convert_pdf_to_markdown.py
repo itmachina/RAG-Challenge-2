@@ -140,10 +140,10 @@ def main():
     os.makedirs(output_dir, exist_ok=True)
     
     # Convert PDF to JSON
-    # print(f"Converting {args.pdf_path} to JSON...")
-    # json_path = convert_pdf_to_json(args.pdf_path, output_dir)
-    # print(f"JSON file created: {json_path}")
-    json_path = "D:\project\RAG-Challenge-2\output\9d7a72445aba6860402c3acce75af02dc045f74d.json"
+    print(f"Converting {args.pdf_path} to JSON...")
+    json_path = convert_pdf_to_json(args.pdf_path, output_dir)
+    print(f"JSON file created: {json_path}")
+    # json_path = "D:\project\RAG-Challenge-2\output\9d7a72445aba6860402c3acce75af02dc045f74d.json"
     # Convert JSON to Markdown
     markdown_path = os.path.join(output_dir, Path(args.pdf_path).stem + ".md")
     print(f"Converting {json_path} to Markdown...")
