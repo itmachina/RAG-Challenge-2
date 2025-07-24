@@ -12,6 +12,45 @@ This repository contains the winning solution for both prize nominations in the 
 - Structured output prompting with chain-of-thought reasoning
 - Query routing for multi-company comparisons
 
+## New Features and Improvements
+
+### Enhanced Pipeline Configuration
+The pipeline has been significantly enhanced with more configurable options:
+- Support for multiple LLM providers (OpenAI, IBM WatsonX, Google Gemini)
+- Configurable reranking with sample size and top-N retrieval parameters
+- Full context mode for models with large context windows
+- Parent document retrieval for better context preservation
+- Table serialization for improved handling of tabular data
+
+### Multi-Provider LLM Support
+- Full support for OpenAI models including o3-mini
+- IBM WatsonX integration with Llama models (70B and 8B)
+- Google Gemini integration with both standard and "thinking" models
+- Automatic response parsing and validation with schema enforcement
+
+### Advanced Question Processing
+- Improved comparative question handling with automatic rephrasing
+- Reference validation to prevent hallucinated page references
+- Better error handling and debugging capabilities
+- Structured output with detailed reasoning process
+
+### Performance Optimizations
+- Parallel processing for PDF parsing and table serialization
+- Configurable chunk sizes and worker counts for optimal performance
+- BM25 database support in addition to vector databases
+- Enhanced token management for large context models
+
+### Enhanced PDF Parsing
+The PDF parsing module has been significantly improved with:
+- Updated to use DoclingParseV4DocumentBackend for better parsing accuracy
+- Support for sequential page numbering with gap filling for missing pages
+- Enhanced `OCR` capabilities with `EasyOCR` integration
+- Improved table structure recognition with cell matching
+- Picture extraction and processing capabilities
+- Parallel processing of PDF files with configurable chunk sizes
+- Better metadata handling with support for both old and new CSV formats
+- Debug data export functionality for troubleshooting
+
 ## Disclaimer
 
 This is competition code - it's scrappy but it works. Some notes before you dive in:
@@ -90,13 +129,27 @@ python main.py process-reports --config ser_tab
 # Process reports with serialized tables config
 ```
 
-## Some configs
+## Configuration Options
 
+The system supports multiple configurations for different use cases:
+
+- `base` - Basic configuration with minimal features
+- `pdr` - Parent document retrieval enabled
+- `max` - Full-featured configuration with table serialization
+- `max_no_ser_tab` - Full features without table serialization
 - `max_nst_o3m` - Best performing config using OpenAI's o3-mini model
+- `max_st_o3m` - With table serialization using o3-mini
 - `ibm_llama70b` - Alternative using IBM's Llama 70B model
-- `gemini_thinking` - Full context answering with using enormous context window of Gemini. It is not RAG, actually
+- `ibm_llama8b` - Alternative using IBM's Llama 8B model
+- `gemini_thinking` - Full context answering with using enormous context window of Gemini
+- `gemini_flash` - Using Gemini Flash model with full context
 
-Check `pipeline.py` for more configs and detils on them.
+For advanced configurations with increased retrieval parameters:
+- `max_nst_o3m_bc` - Increased top-N and reranking sample size with o3-mini
+- `ibm_llama70b_bc` - Increased parameters with IBM Llama 70B
+- `gemini_thinking_bc` - Increased top-N with Gemini thinking model
+
+Check `pipeline.py` for more configs and details on them.
 
 ## License
 

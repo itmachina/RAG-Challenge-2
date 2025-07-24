@@ -1,3 +1,4 @@
+import base64
 import os
 import time
 import logging
@@ -81,6 +82,9 @@ class PDFParser:
         pipeline_options.do_table_structure = True
         pipeline_options.table_structure_options.do_cell_matching = True
         pipeline_options.table_structure_options.mode = TableFormerMode.ACCURATE
+        pipeline_options.generate_picture_images = False  # Enable picture extraction
+        pipeline_options.generate_page_images = False    # Enable page image generation
+        pipeline_options.images_scale = 1.0            # Set image scale (default is 1.0)
         
         format_options = {
             InputFormat.PDF: FormatOption(
@@ -260,7 +264,7 @@ class JsonReportProcessor:
         assembled_report['metainfo'] = self.assemble_metainfo(data)
         assembled_report['content'] = self.assemble_content(data)
         assembled_report['tables'] = self.assemble_tables(conv_result.document.tables, data)
-        assembled_report['pictures'] = self.assemble_pictures(data)
+        assembled_report['pictures'] = self.assemble_pictures(data, conv_result)
         self.debug_data(data)
         return assembled_report
     
@@ -495,8 +499,14 @@ class JsonReportProcessor:
         
         return md_table
 
-    def assemble_pictures(self, data):
+    def assemble_pictures(self, data, conv_result=None):
         assembled_pictures = []
+        # Create images directory if it doesn't exist
+        images_dir = None
+        if conv_result and conv_result.input.file:
+            images_dir = conv_result.input.file.parent / f"{conv_result.input.file.stem}_images"
+            images_dir.mkdir(exist_ok=True)
+        
         for i, picture in enumerate(data['pictures']):
             children_list = self._process_picture_block(picture, data)
             
@@ -512,12 +522,34 @@ class JsonReportProcessor:
                 picture_bbox['b']
             ]
             
+            # Extract and save image data if available
+            image_info = {}
+            if conv_result and hasattr(conv_result.document, 'pictures') and len(conv_result.document.pictures) > i:
+                docling_picture = conv_result.document.pictures[i]
+                if hasattr(docling_picture, 'image') and docling_picture.image:
+                    # Save image to file
+                    if images_dir:
+                        image_filename = f"image_{ref_num}_page_{picture_page_num}.png"
+                        image_path = images_dir / image_filename
+                        try:
+                            # Save the image data
+                            docling_picture.image.pil_image.save(image_path)
+
+                            image_info['image_path'] = str(image_path.relative_to(conv_result.input.file.parent))
+                        except Exception as e:
+                            _log.warning(f"Failed to save image {ref_num}: {str(e)}")
+            
             picture_obj = {
                 'picture_id': ref_num,
                 'page': picture_page_num,
                 'bbox': picture_bbox,
                 'children': children_list,
             }
+            
+            # Add image information if available
+            if image_info:
+                picture_obj.update(image_info)
+                
             assembled_pictures.append(picture_obj)
         return assembled_pictures
     
