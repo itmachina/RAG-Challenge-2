@@ -35,11 +35,12 @@ The system can be run using either the main.py CLI or by directly executing pipe
 ```bash
 # Using main.py CLI (run from directory containing your data)
 cd .\data\test_set\
-python ..\..\main.py process-questions --config max_nst_o3m
+rag-pipeline process-questions --config max_nst_o3m
 
 # Or using pipeline.py directly (uncomment methods in the file)
-python .\src\pipeline.py
+python .\rag_challenge\pipeline.py
 ```
+
 
 ### CLI Commands
 ```bash
@@ -58,37 +59,37 @@ python main.py process-questions        # Process questions using specified conf
 
 ### Core Components
 
-1. **PDF Parsing** (`src/pdf_parsing.py`)
+1. **PDF Parsing** (`rag_challenge/pdf_parsing.py`)
    - Uses Docling library to parse PDF annual reports
    - Converts PDFs to structured JSON with text, tables, and metadata
    - Supports both sequential and parallel processing
 
-2. **Pipeline Management** (`src/pipeline.py`)
+2. **Pipeline Management** (`rag_challenge/pipeline.py`)
    - Main orchestrator that coordinates the entire RAG pipeline
    - Contains multiple configurations for different processing approaches
    - Handles document processing stages: parsing, merging, chunking, vector DB creation
 
-3. **Data Ingestion** (`src/ingestion.py`)
+3. **Data Ingestion** (`rag_challenge/ingestion.py`)
    - Creates vector databases using FAISS
    - Builds BM25 indexes for traditional keyword-based search
 
-4. **Retrieval** (`src/retrieval.py`)
+4. **Retrieval** (`rag_challenge/retrieval.py`)
    - VectorRetriever: Retrieves documents using vector similarity search
    - BM25Retriever: Retrieves documents using keyword matching
    - HybridRetriever: Combines vector and LLM reranking approaches
 
-5. **Question Processing** (`src/questions_processing.py`)
+5. **Question Processing** (`rag_challenge/questions_processing.py`)
    - Main question answering engine
    - Handles both single-company and comparative questions
    - Manages parallel processing of multiple questions
    - Integrates with various retrieval methods
 
-6. **LLM Integration** (`src/api_requests.py`, `src/prompts.py`)
+6. **LLM Integration** (`rag_challenge/api_requests.py`, `rag_challenge/prompts.py`)
    - Handles API calls to OpenAI, Gemini, and IBM models
    - Contains structured prompts for different question types
    - Implements retry logic and error handling
 
-7. **Reranking** (`src/reranking.py`)
+7. **Reranking** (`rag_challenge/reranking.py`)
    - LLM-based reranking of retrieved documents
    - Improves relevance of context provided to answer generation
 
@@ -100,12 +101,25 @@ python main.py process-questions        # Process questions using specified conf
 2. **Question Answering Pipeline**:
    - Question → Company extraction → Document retrieval → Context formation → LLM answer generation → Response validation
 
-### Key Configurations
+### Configuration Options
 
-Several predefined configurations are available in `src/pipeline.py`:
-- `max_nst_o3m`: Best performing config using OpenAI's o3-mini model
-- `ibm_llama70b`: Alternative using IBM's Llama 70B model
-- `gemini_thinking`: Full context answering with Gemini's large context window
+Several predefined configurations are available in `rag_challenge/pipeline.py`:
+
+- `base` - Basic configuration with minimal features
+- `pdr` - Parent document retrieval enabled
+- `max` - Full-featured configuration with table serialization
+- `max_no_ser_tab` - Full features without table serialization
+- `max_nst_o3m` - Best performing config using OpenAI's o3-mini model
+- `max_st_o3m` - With table serialization using o3-mini
+- `ibm_llama70b` - Alternative using IBM's Llama 70B model
+- `ibm_llama8b` - Alternative using IBM's Llama 8B model
+- `gemini_thinking` - Full context answering with using enormous context window of Gemini
+- `gemini_flash` - Using Gemini Flash model with full context
+
+For advanced configurations with increased retrieval parameters:
+- `max_nst_o3m_bc` - Increased top-N and reranking sample size with o3-mini
+- `ibm_llama70b_bc` - Increased parameters with IBM Llama 70B
+- `gemini_thinking_bc` - Increased top-N with Gemini thinking model
 
 ## Important Notes
 

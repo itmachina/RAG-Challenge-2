@@ -1,6 +1,6 @@
 import click
 from pathlib import Path
-from rag_challenge.pipeline import Pipeline, configs, preprocess_configs
+from .pipeline import Pipeline, configs, preprocess_configs
 
 
 @click.group()
@@ -67,5 +67,9 @@ def process_questions(config):
     pipeline.process_questions()
 
 
-if __name__ == '__main__':
+def main():
     cli()
+
+
+if __name__ == '__main__':
+    main()

@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 import requests
-import src.prompts as prompts
+from .prompts import RerankingPrompt, RetrievalRankingSingleBlock, RetrievalRankingMultipleBlocks
 from concurrent.futures import ThreadPoolExecutor
 
 
@@ -33,10 +33,10 @@ class JinaReranker:
 class LLMReranker:
     def __init__(self):
         self.llm = self.set_up_llm()
-        self.system_prompt_rerank_single_block = prompts.RerankingPrompt.system_prompt_rerank_single_block
-        self.system_prompt_rerank_multiple_blocks = prompts.RerankingPrompt.system_prompt_rerank_multiple_blocks
-        self.schema_for_single_block = prompts.RetrievalRankingSingleBlock
-        self.schema_for_multiple_blocks = prompts.RetrievalRankingMultipleBlocks
+        self.system_prompt_rerank_single_block = RerankingPrompt.system_prompt_rerank_single_block
+        self.system_prompt_rerank_multiple_blocks = RerankingPrompt.system_prompt_rerank_multiple_blocks
+        self.schema_for_single_block = RetrievalRankingSingleBlock
+        self.schema_for_multiple_blocks = RetrievalRankingMultipleBlocks
       
     def set_up_llm(self):
         load_dotenv()

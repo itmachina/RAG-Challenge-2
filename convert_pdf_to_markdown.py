@@ -6,7 +6,7 @@ Script to convert PDF files to JSON using pdf_parsing, then convert JSON to Mark
 import json
 import os
 from pathlib import Path
-from src.pdf_parsing import PDFParser, JsonReportProcessor
+from rag_challenge.pdf_parsing import PDFParser, JsonReportProcessor
 
 
 def convert_pdf_to_json(pdf_path, output_dir):
@@ -65,56 +65,58 @@ def convert_json_to_markdown(json_path, output_path):
     # Add content sections
     markdown_content.append("# Document Content\n")
     
-    for page in content_pages:
-        # page_num = page.get('page', 0)
-        # markdown_content.append(f"## Page {page_num}\n")
-        
-        content_items = page.get('content', [])
-        for item in content_items:
-            item_type = item.get('type', 'text')
+    # Handle case where content_pages might be None
+    if content_pages is not None:
+        for page in content_pages:
+            # page_num = page.get('page', 0)
+            # markdown_content.append(f"## Page {page_num}\n")
             
-            if item_type == 'table':
-                # Handle table references - insert table content directly
-                table_id = item.get('table_id')
-                if table_id in table_dict:
-                    table = table_dict[table_id]
-                    # Insert table content directly in place
-                    markdown_content.append(table.get('markdown', ''))
-                    markdown_content.append("")
-            elif item_type == 'picture':
-                # Handle picture references
-                picture_id = item.get('picture_id')
-                markdown_content.append(f"[Picture {picture_id}]\n")
-            elif item_type == 'section_header':
-                # Handle section headers
-                text = item.get('text', '')
-                if text.strip():
-                    # Convert to Markdown header (## for section headers)
-                    markdown_content.append(f"### {text}")
-                    markdown_content.append("")
-            elif item_type == 'page_header':
-                continue
-            elif item_type == 'page_footer':
-                continue
-            elif item_type == 'list_item':
-                # Handle list items
-                text = item.get('text', '')
-                if text.strip():
-                    # Convert to Markdown list item
-                    # Remove leading bullet point if present
-                    cleaned_text = text.strip()
-                    if cleaned_text.startswith(('·', '-', '*', '•')):
-                        cleaned_text = cleaned_text[1:].strip()
-                    markdown_content.append(f"- {cleaned_text}")
-                    markdown_content.append("")
-            else:
-                # Handle other text content (including regular text)
-                text = item.get('text', '')
-                if text.strip():
-                    markdown_content.append(text)
-                    markdown_content.append("")
-        
-        markdown_content.append("")
+            content_items = page.get('content', [])
+            for item in content_items:
+                item_type = item.get('type', 'text')
+                
+                if item_type == 'table':
+                    # Handle table references - insert table content directly
+                    table_id = item.get('table_id')
+                    if table_id in table_dict:
+                        table = table_dict[table_id]
+                        # Insert table content directly in place
+                        markdown_content.append(table.get('markdown', ''))
+                        markdown_content.append("")
+                elif item_type == 'picture':
+                    # Handle picture references
+                    picture_id = item.get('picture_id')
+                    markdown_content.append(f"[Picture {picture_id}]\n")
+                elif item_type == 'section_header':
+                    # Handle section headers
+                    text = item.get('text', '')
+                    if text.strip():
+                        # Convert to Markdown header (## for section headers)
+                        markdown_content.append(f"### {text}")
+                        markdown_content.append("")
+                elif item_type == 'page_header':
+                    continue
+                elif item_type == 'page_footer':
+                    continue
+                elif item_type == 'list_item':
+                    # Handle list items
+                    text = item.get('text', '')
+                    if text.strip():
+                        # Convert to Markdown list item
+                        # Remove leading bullet point if present
+                        cleaned_text = text.strip()
+                        if cleaned_text.startswith(('·', '-', '*', '•')):
+                            cleaned_text = cleaned_text[1:].strip()
+                        markdown_content.append(f"- {cleaned_text}")
+                        markdown_content.append("")
+                else:
+                    # Handle other text content (including regular text)
+                    text = item.get('text', '')
+                    if text.strip():
+                        markdown_content.append(text)
+                        markdown_content.append("")
+            
+            markdown_content.append("")
     
     # Write to Markdown file
     with open(output_path, 'w', encoding='utf-8') as f:

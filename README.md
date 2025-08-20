@@ -12,6 +12,10 @@ This repository contains the winning solution for both prize nominations in the 
 - Structured output prompting with chain-of-thought reasoning
 - Query routing for multi-company comparisons
 
+## Package Structure
+
+This project has been restructured as a proper Python package (`rag_challenge`) that can be used in other projects.
+
 ## New Features and Improvements
 
 ### Enhanced Pipeline Configuration
@@ -71,7 +75,7 @@ git clone https://github.com/IlyaRice/RAG-Challenge-2.git
 cd RAG-Challenge-2
 python -m venv venv
 venv\Scripts\Activate.ps1  # Windows (PowerShell)
-pip install -e . -r requirements.txt
+pip install -e .
 ```
 
 Rename `env` to `.env` and add your API keys.
@@ -95,15 +99,15 @@ See the respective README files for detailed dataset contents and setup instruct
 
 ## Usage
 
-You can run any part of pipeline by uncommenting the method you want to run in `src/pipeline.py` and executing:
+You can run any part of pipeline by uncommenting the method you want to run in `rag_challenge/pipeline.py` and executing:
 ```bash
-python .\src\pipeline.py
+python .\rag_challenge\pipeline.py
 ```
 
-You can also run any pipeline stage using `main.py`, but you need to run it from the directory containing your data:
+You can also run any pipeline stage using the CLI:
 ```bash
 cd .\data\test_set\
-python ..\..\main.py process-questions --config max_nst_o3m
+rag-pipeline process-questions --config max_nst_o3m
 ```
 
 ### CLI Commands

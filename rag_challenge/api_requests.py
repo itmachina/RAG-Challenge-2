@@ -4,10 +4,10 @@ from dotenv import load_dotenv
 from typing import Union, List, Dict, Type, Optional, Literal
 from openai import OpenAI
 import asyncio
-from src.api_request_parallel_processor import process_api_requests_from_file
+from .api_request_parallel_processor import process_api_requests_from_file
 from openai.lib._parsing import type_to_response_format_param 
 import tiktoken
-import src.prompts as prompts
+from .prompts import AnswerSchemaFixPrompt, RephrasedQuestionsPrompt, AnswerWithRAGContextNumberPrompt,ComparativeAnswerPrompt,  AnswerWithRAGContextBooleanPrompt,AnswerWithRAGContextNamePrompt, AnswerWithRAGContextNamesPrompt
 import requests
 from json_repair import repair_json
 from pydantic import BaseModel
@@ -222,13 +222,13 @@ class BaseIBMAPIProcessor:
 
     def _reparse_response(self, response, system_content):
 
-        user_prompt = prompts.AnswerSchemaFixPrompt.user_prompt.format(
+        user_prompt = AnswerSchemaFixPrompt.user_prompt.format(
             system_prompt=system_content,
             response=response
         )
         
         reparsed_response = self.send_message(
-            system_content=prompts.AnswerSchemaFixPrompt.system_prompt,
+            system_content=AnswerSchemaFixPrompt.system_prompt,
             human_content=user_prompt,
             is_structured=False
         )
@@ -297,15 +297,15 @@ class BaseGeminiProcessor:
 
     def _reparse_response(self, response, response_format):
         """Reparse invalid JSON responses using the model itself."""
-        user_prompt = prompts.AnswerSchemaFixPrompt.user_prompt.format(
-            system_prompt=prompts.AnswerSchemaFixPrompt.system_prompt,
+        user_prompt = AnswerSchemaFixPrompt.user_prompt.format(
+            system_prompt=AnswerSchemaFixPrompt.system_prompt,
             response=response
         )
         
         try:
             reparsed_response = self.send_message(
                 model="gemini-2.0-flash-001",
-                system_content=prompts.AnswerSchemaFixPrompt.system_prompt,
+                system_content= AnswerSchemaFixPrompt.system_prompt,
                 human_content=user_prompt,
                 is_structured=False
             )
@@ -424,30 +424,30 @@ class APIProcessor:
         use_schema_prompt = True if self.provider == "ibm" or self.provider == "gemini" else False
         
         if schema == "name":
-            system_prompt = (prompts.AnswerWithRAGContextNamePrompt.system_prompt_with_schema 
-                            if use_schema_prompt else prompts.AnswerWithRAGContextNamePrompt.system_prompt)
-            response_format = prompts.AnswerWithRAGContextNamePrompt.AnswerSchema
-            user_prompt = prompts.AnswerWithRAGContextNamePrompt.user_prompt
+            system_prompt = (AnswerWithRAGContextNamePrompt.system_prompt_with_schema 
+                            if use_schema_prompt else AnswerWithRAGContextNamePrompt.system_prompt)
+            response_format = AnswerWithRAGContextNamePrompt.AnswerSchema
+            user_prompt = AnswerWithRAGContextNamePrompt.user_prompt
         elif schema == "number":
-            system_prompt = (prompts.AnswerWithRAGContextNumberPrompt.system_prompt_with_schema
-                            if use_schema_prompt else prompts.AnswerWithRAGContextNumberPrompt.system_prompt)
-            response_format = prompts.AnswerWithRAGContextNumberPrompt.AnswerSchema
-            user_prompt = prompts.AnswerWithRAGContextNumberPrompt.user_prompt
+            system_prompt = (AnswerWithRAGContextNumberPrompt.system_prompt_with_schema
+                            if use_schema_prompt else AnswerWithRAGContextNumberPrompt.system_prompt)
+            response_format = AnswerWithRAGContextNumberPrompt.AnswerSchema
+            user_prompt = AnswerWithRAGContextNumberPrompt.user_prompt
         elif schema == "boolean":
-            system_prompt = (prompts.AnswerWithRAGContextBooleanPrompt.system_prompt_with_schema
-                            if use_schema_prompt else prompts.AnswerWithRAGContextBooleanPrompt.system_prompt)
-            response_format = prompts.AnswerWithRAGContextBooleanPrompt.AnswerSchema
-            user_prompt = prompts.AnswerWithRAGContextBooleanPrompt.user_prompt
+            system_prompt = (AnswerWithRAGContextBooleanPrompt.system_prompt_with_schema
+                            if use_schema_prompt else AnswerWithRAGContextBooleanPrompt.system_prompt)
+            response_format = AnswerWithRAGContextBooleanPrompt.AnswerSchema
+            user_prompt = AnswerWithRAGContextBooleanPrompt.user_prompt
         elif schema == "names":
-            system_prompt = (prompts.AnswerWithRAGContextNamesPrompt.system_prompt_with_schema
-                            if use_schema_prompt else prompts.AnswerWithRAGContextNamesPrompt.system_prompt)
-            response_format = prompts.AnswerWithRAGContextNamesPrompt.AnswerSchema
-            user_prompt = prompts.AnswerWithRAGContextNamesPrompt.user_prompt
+            system_prompt = (AnswerWithRAGContextNamesPrompt.system_prompt_with_schema
+                            if use_schema_prompt else AnswerWithRAGContextNamesPrompt.system_prompt)
+            response_format = AnswerWithRAGContextNamesPrompt.AnswerSchema
+            user_prompt = AnswerWithRAGContextNamesPrompt.user_prompt
         elif schema == "comparative":
-            system_prompt = (prompts.ComparativeAnswerPrompt.system_prompt_with_schema
-                            if use_schema_prompt else prompts.ComparativeAnswerPrompt.system_prompt)
-            response_format = prompts.ComparativeAnswerPrompt.AnswerSchema
-            user_prompt = prompts.ComparativeAnswerPrompt.user_prompt
+            system_prompt = (ComparativeAnswerPrompt.system_prompt_with_schema
+                            if use_schema_prompt else ComparativeAnswerPrompt.system_prompt)
+            response_format = ComparativeAnswerPrompt.AnswerSchema
+            user_prompt = ComparativeAnswerPrompt.user_prompt
         else:
             raise ValueError(f"Unsupported schema: {schema}")
         return system_prompt, response_format, user_prompt
@@ -455,13 +455,13 @@ class APIProcessor:
     def get_rephrased_questions(self, original_question: str, companies: List[str]) -> Dict[str, str]:
         """Use LLM to break down a comparative question into individual questions."""
         answer_dict = self.processor.send_message(
-            system_content=prompts.RephrasedQuestionsPrompt.system_prompt,
-            human_content=prompts.RephrasedQuestionsPrompt.user_prompt.format(
+            system_content=RephrasedQuestionsPrompt.system_prompt,
+            human_content=RephrasedQuestionsPrompt.user_prompt.format(
                 question=original_question,
                 companies=", ".join([f'"{company}"' for company in companies])
             ),
             is_structured=True,
-            response_format=prompts.RephrasedQuestionsPrompt.RephrasedQuestions
+            response_format=RephrasedQuestionsPrompt.RephrasedQuestions
         )
         
         # Convert the answer_dict to the desired format

@@ -71,13 +71,13 @@ class PDFParser:
     def _create_document_converter(self) -> "DocumentConverter": # type: ignore
         """Creates and returns a DocumentConverter with default pipeline options."""
         from docling.document_converter import DocumentConverter, FormatOption
-        from docling.datamodel.pipeline_options import PdfPipelineOptions, TableFormerMode, EasyOcrOptions
+        from docling.datamodel.pipeline_options import PdfPipelineOptions, TableFormerMode, EasyOcrOptions, RapidOcrOptions
         from docling.datamodel.base_models import InputFormat
         from docling.pipeline.standard_pdf_pipeline import StandardPdfPipeline
         
         pipeline_options = PdfPipelineOptions()
         pipeline_options.do_ocr = True
-        ocr_options = EasyOcrOptions(lang=['en'], force_full_page_ocr=False)
+        ocr_options = RapidOcrOptions()
         pipeline_options.ocr_options = ocr_options
         pipeline_options.do_table_structure = True
         pipeline_options.table_structure_options.do_cell_matching = True
@@ -263,7 +263,7 @@ class JsonReportProcessor:
         assembled_report = {}
         assembled_report['metainfo'] = self.assemble_metainfo(data)
         assembled_report['content'] = self.assemble_content(data)
-        assembled_report['tables'] = self.assemble_tables(conv_result.document.tables, data)
+        assembled_report['tables'] = self.assemble_tables(conv_result.document.tables, data, conv_result.document)
         assembled_report['pictures'] = self.assemble_pictures(data, conv_result)
         self.debug_data(data)
         return assembled_report
@@ -433,16 +433,24 @@ class JsonReportProcessor:
                             }
                         
                         pages[page_num]['content'].append(content_item)
+        
+        # Convert pages dictionary to a list of pages sorted by page number
+        pages_list = [pages[page_num] for page_num in sorted(pages.keys())]
+        return pages_list
 
-        sorted_pages = [pages[page_num] for page_num in sorted(pages.keys())]
-        return sorted_pages
-
-    def assemble_tables(self, tables, data):
+    def assemble_tables(self, tables, data, document):
         assembled_tables = []
         for i, table in enumerate(tables):
             table_json_obj = table.model_dump()
             table_md = self._table_to_md(table_json_obj)
-            table_html = table.export_to_html()
+            
+            # 使用document参数调用export_to_html方法
+            try:
+                table_html = table.export_to_html(doc=document)
+            except Exception as e:
+                print(f"Error calling export_to_html: {e}")
+                # 回退到不带参数的方式（会产生警告但不会出错）
+                table_html = table.export_to_html()
             
             table_data = data['tables'][i]
             table_page_num = table_data['prov'][0]['page_no']
@@ -468,10 +476,10 @@ class JsonReportProcessor:
                 '#-rows': nrows,
                 '#-cols': ncols,
                 'markdown': table_md,
-                'html': table_html,
-                'json': table_json_obj
+                'html': table_html
             }
             assembled_tables.append(table_obj)
+        
         return assembled_tables
 
     def _table_to_md(self, table):
@@ -481,23 +489,23 @@ class JsonReportProcessor:
             table_row = [cell['text'] for cell in row]
             table_data.append(table_row)
         
-        # Check if the table has headers
-        if len(table_data) > 1 and len(table_data[0]) > 0:
-            try:
-                md_table = tabulate(
-                    table_data[1:], headers=table_data[0], tablefmt="github"
-                )
-            except ValueError:
-                md_table = tabulate(
-                    table_data[1:],
-                    headers=table_data[0],
-                    tablefmt="github",
-                    disable_numparse=True,
-                )
-        else:
-            md_table = tabulate(table_data, tablefmt="github")
+        # Convert to markdown table
+        if not table_data:
+            return ""
         
-        return md_table
+        # Create markdown table
+        markdown_table = []
+        for i, row in enumerate(table_data):
+            # Create row with pipe separators
+            markdown_row = "| " + " | ".join(str(cell) for cell in row) + " |"
+            markdown_table.append(markdown_row)
+            
+            # Add header separator after first row
+            if i == 0:
+                separator = "|" + "|".join(["---"] * len(row)) + "|"
+                markdown_table.append(separator)
+        
+        return "\n".join(markdown_table)
 
     def assemble_pictures(self, data, conv_result=None):
         assembled_pictures = []

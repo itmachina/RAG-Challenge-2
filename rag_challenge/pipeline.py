@@ -6,13 +6,13 @@ import os
 import json
 import pandas as pd
 
-from src.pdf_parsing import PDFParser
-from src.parsed_reports_merging import PageTextPreparation
-from src.text_splitter import TextSplitter
-from src.ingestion import VectorDBIngestor
-from src.ingestion import BM25Ingestor
-from src.questions_processing import QuestionsProcessor
-from src.tables_serialization import TableSerializer
+from .pdf_parsing import PDFParser
+from .parsed_reports_merging import PageTextPreparation
+from .text_splitter import TextSplitter
+from .ingestion import VectorDBIngestor
+from .ingestion import BM25Ingestor
+from .questions_processing import QuestionsProcessor
+from .tables_serialization import TableSerializer
 
 @dataclass
 class PipelineConfig:
@@ -104,7 +104,7 @@ class Pipeline:
     def download_docling_models(): 
         logging.basicConfig(level=logging.DEBUG)
         parser = PDFParser(output_dir=here())
-        parser.parse_and_export(input_doc_paths=[here() / "src/dummy_report.pdf"])
+        parser.parse_and_export(input_doc_paths=[here() / "rag_challenge/dummy_report.pdf"])
 
     def parse_pdf_reports_sequential(self):
         logging.basicConfig(level=logging.DEBUG)

@@ -2,8 +2,8 @@ import json
 from typing import Union, Dict, List, Optional
 import re
 from pathlib import Path
-from src.retrieval import VectorRetriever, HybridRetriever
-from src.api_requests import APIProcessor
+from .retrieval import VectorRetriever, HybridRetriever
+from .api_requests import APIProcessor
 from tqdm import tqdm
 import pandas as pd
 import threading
