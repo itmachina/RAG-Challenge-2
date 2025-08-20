@@ -128,3 +128,25 @@ For advanced configurations with increased retrieval parameters:
 - GPU recommended for PDF parsing (significantly faster)
 - Requires API keys for OpenAI/Gemini services
 - No tests or minimal error handling - use with caution in production
+
+## Troubleshooting
+
+### PDF Parsing Issues
+
+If you encounter issues with PDF parsing, particularly with OCR-related errors, you may need to:
+
+1. Install the required OCR packages:
+   ```bash
+   pip install rapidocr onnxruntime
+   ```
+
+2. If you get DLL load errors on Windows, you may need to install Microsoft Visual C++ Redistributable packages.
+
+
+### Virtual Environment
+
+The virtual environment for this project is located in the `venv` directory. Always activate it before running any commands:
+```bash
+# Windows (PowerShell)
+venv\Scripts\Activate.ps1
+```
