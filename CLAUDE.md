@@ -140,8 +140,7 @@ If you encounter issues with PDF parsing, particularly with OCR-related errors, 
    pip install rapidocr onnxruntime
    ```
 
-2. If you get DLL load errors on Windows, you may need to install Microsoft Visual C++ Redistributable packages.
-
+2. on macos ,run: OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 ./venv/bin/python ./convert_pdf_to_markdown.py ./data/pdf/2.pdf 
 
 ### Virtual Environment
 
